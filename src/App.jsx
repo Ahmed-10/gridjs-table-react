@@ -18,6 +18,7 @@ function App() {
             { value: "username", label: "username" },
             { value: "email", label: "email" }
           ]}
+          sortColumns={["name", "username", "email"]}
           paginationLimit={5}
         />
       </header>
