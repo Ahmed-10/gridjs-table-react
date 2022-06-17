@@ -9,6 +9,7 @@ export default function DataTable({
   url,
   mapFunc,
   searchFields,
+  sortColumns,
   paginationLimit,
 }) {
   const [searchParam, setSearchParam] = React.useState("search");
@@ -58,6 +59,21 @@ export default function DataTable({
         }}
         columns={columns}
         search={false}
+        sort={{
+          multiColumn: false,
+          server: {
+            url: (prev, columns) => {
+              if (!columns.length) return prev;
+
+              const col = columns[0];
+              const dir = col.direction === 1 ? "asc" : "desc";
+              let colName = sortColumns[col.index];
+              if (prev.includes("?"))
+                return `${prev}&sortBy=${colName}&order=${dir}`;
+              else return `${prev}?sortBy=${colName}&order=${dir}`;
+            }
+          }
+        }}
         pagination={{
           enabled: true,
           limit: paginationLimit,
