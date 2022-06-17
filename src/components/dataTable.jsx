@@ -14,12 +14,20 @@ export default function DataTable({
       server={{
         url: url,
         then: (data) => data.map((user) => mapFunc(user)),
+        // total takes a function that returns the total number of items
+        // 80 is the number of fake users I have
+        total: (data) => 80,
       }}
       columns={columns}
       search={search}
       pagination={{
         enabled: true,
         limit: paginationLimit,
+        server: {
+          url: (prev, page, limit) => {
+            return `${prev}?page=${page + 1}&limit=${limit}`;
+          }
+        }
       }}
     />
   );
