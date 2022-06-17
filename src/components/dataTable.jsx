@@ -1,4 +1,6 @@
+import React from "react";
 import PropTypes from "prop-types";
+import debouce from "lodash.debounce";
 import { Grid } from "gridjs-react";
 import "gridjs/dist/theme/mermaid.css";
 
@@ -6,30 +8,69 @@ export default function DataTable({
   columns,
   url,
   mapFunc,
-  search,
+  searchFields,
   paginationLimit,
 }) {
+  const [searchParam, setSearchParam] = React.useState("search");
+  const [search, setSearch] = React.useState("");
+  const handleSelectChange = (e) => {
+    setSearchParam(e.target.value);
+  };
+  const handleSearchChange = (e) => {
+    if (e.target.value !== "") setSearch(e.target.value);
+    else setSearch("");
+  };
+
+  const getUrl = () => {
+    if (search !== "") return `${url}?${searchParam}=${search}`;
+    else return url;
+  };
+
+  const debouncedResults = React.useMemo(() => {
+    return debouce(handleSearchChange, 1000);
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      debouncedResults.cancel();
+    };
+  });
   return (
-    <Grid
-      server={{
-        url: url,
-        then: (data) => data.map((user) => mapFunc(user)),
-        // total takes a function that returns the total number of items
-        // 80 is the number of fake users I have
-        total: (data) => 80,
-      }}
-      columns={columns}
-      search={search}
-      pagination={{
-        enabled: true,
-        limit: paginationLimit,
-        server: {
-          url: (prev, page, limit) => {
-            return `${prev}?page=${page + 1}&limit=${limit}`;
-          }
-        }
-      }}
-    />
+    <>
+      <input type="text" placeholder="search" onChange={debouncedResults} />
+      <span>in</span>
+      <select onChange={handleSelectChange}>
+        <option value="search" default>
+          all
+        </option>
+        {searchFields.map((field) => (
+          <option key={field.value} value={field.value}>
+            {field.label}
+          </option>
+        ))}
+      </select>
+      <span>field/s</span>
+      <Grid
+        server={{
+          url: getUrl(),
+          then: (data) => data.data.map((user) => mapFunc(user)),
+          total: (data) => data.count,
+        }}
+        columns={columns}
+        search={false}
+        pagination={{
+          enabled: true,
+          limit: paginationLimit,
+          server: {
+            url: (prev, page, limit) => {
+              if (prev.includes("?"))
+                return `${prev}&page=${page + 1}&limit=${limit}`;
+              else return `${prev}?page=${page + 1}&limit=${limit}`;
+            }
+          },
+        }}
+      />
+    </>
   );
 }
 

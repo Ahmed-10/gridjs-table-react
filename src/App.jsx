@@ -13,7 +13,11 @@ function App() {
           columns={["Name", "Username", "Email"]}
           url="https://5fbdb7183f8f90001638d398.mockapi.io/mock-data/v1/users"
           mapFunc={(user) => [user.name, user.username, user.email]}
-          search={true}
+          searchFields={[
+            { value: "name", label: "name" },
+            { value: "username", label: "username" },
+            { value: "email", label: "email" }
+          ]}
           paginationLimit={5}
         />
       </header>
